@@ -1,0 +1,181 @@
+:root {
+  --bg: #f6f8fb;
+  --fg: #14202e;
+  --muted: #5b6878;
+  --line: #c9d3df;
+  --water: #d6e6f5;
+  --ship: #66778a;
+  --miss: #9fb6cc;
+  --hit: #e0533d;
+  --sunk: #7a1f12;
+  --ok: #1e7a43;
+  --on-ok: #fff;
+  --bad: #d64545;
+
+  color-scheme: light dark;
+  font: 16px/1.4 system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1620;
+    --fg: #e6edf5;
+    --muted: #93a1b2;
+    --line: #2a3a4c;
+    --water: #16324d;
+    --ship: #8a9bb0;
+    --miss: #3d5a78;
+    --hit: #ff6b52;
+    --sunk: #b8321f;
+    --ok: #3fbf72;
+    --on-ok: #0e1620;
+    --bad: #ff5d5d;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 4px;
+}
+
+h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+
+.hint {
+  color: var(--muted);
+  margin-top: 0;
+}
+
+button {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+button.primary {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: var(--on-ok);
+}
+
+[aria-pressed='true'] {
+  outline: 2px solid var(--ok);
+  outline-offset: 1px;
+}
+
+.tray,
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.tray-ship {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  touch-action: none;
+  user-select: none;
+}
+
+.ship-name {
+  text-transform: capitalize;
+}
+
+.ship-len {
+  color: var(--ship);
+  letter-spacing: 2px;
+}
+
+.boards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.grid {
+  display: grid;
+  gap: 2px;
+  width: min(92vw, 400px);
+  aspect-ratio: 1;
+  user-select: none;
+}
+
+/* only while placing, so the page still scrolls during battle */
+.grid-drag {
+  touch-action: none;
+}
+
+.cell {
+  position: relative;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 3px;
+  padding: 0;
+  background: var(--water);
+}
+
+.cell:disabled {
+  opacity: 1;
+}
+
+.cell.ship {
+  background: var(--ship);
+}
+
+.cell.miss::after {
+  content: '';
+  position: absolute;
+  inset: 38%;
+  border-radius: 50%;
+  background: var(--miss);
+}
+
+.cell.hit {
+  background: var(--hit);
+}
+
+.cell.sunk {
+  background: var(--sunk);
+}
+
+.cell.preview {
+  background: var(--ok);
+}
+
+.cell.invalid {
+  background: var(--bad);
+}
+
+.grid-enemy .cell:not(:disabled):hover,
+.cell:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -2px;
+}
