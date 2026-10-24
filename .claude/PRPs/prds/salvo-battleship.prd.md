@@ -138,7 +138,7 @@ Open link → fleet placement screen (Randomize or drag/tap ships, rotate) → S
 | # | Phase | Description | Status | Parallel | Depends | PRP Plan |
 |---|-------|-------------|--------|----------|---------|----------|
 | 1 | Scaffold + engine | Vite/React/TS project, pure TS game rules with tests | complete | - | - | [plan](../plans/completed/scaffold-and-engine.plan.md) · [report](../reports/scaffold-and-engine-report.md) |
-| 2 | Medium bot | Hunt/target bot with parity, tested via simulated games | pending | with 3 | 1 | - |
+| 2 | Medium bot | Hunt/target bot with parity, tested via simulated games | complete | with 3 | 1 | [plan](../plans/completed/medium-bot.plan.md) · [report](../reports/medium-bot-report.md) |
 | 3 | Core UI | Boards, placement (drag/tap/rotate/randomize), turn flow, win/lose | complete | with 2 | 1 | [plan](../plans/completed/core-ui.plan.md) · [report](../reports/core-ui-report.md) |
 | 4 | Mobile + polish | Phone layout, animations, visual style | pending | - | 2, 3 | - |
 | 5 | Deploy + playtest | Static deploy, Lighthouse check, friend playtest | pending | - | 4 | - |
@@ -187,6 +187,7 @@ Phases 2 and 3 both depend only on the engine API from Phase 1; bot is pure logi
 | State | useReducer | Zustand/Redux | Single screen, linear phases |
 | Hosting | Static (GH Pages/Netlify/Vercel) | Server | Free, no backend needed |
 | MVP difficulty | Medium (hunt/target) | Random, probability density | Feels real without complexity; others deferred |
+| Medium bot (Phase 2) | Stateless hunt/target with line-end targeting and parity 2 | Bot memory in GameState; parity spaced by smallest live ship | `fire` marks sunk cells, so targets derive from the shots map; sunk cells aren't grouped per ship. Measured 51 avg shots vs 95 random (300 seeded games) |
 
 ---
 

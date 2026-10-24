@@ -1,4 +1,4 @@
-import { randomShot } from './bot'
+import { huntTarget } from './bot'
 import {
   allSunk,
   canPlace,
@@ -107,7 +107,7 @@ export function gameReducer(state: GameState, action: Action): GameState {
       const shot = fire(state.enemy, action.cell)
       if (allSunk(shot.board))
         return { ...state, enemy: shot.board, phase: 'over', winner: 'player', message: 'You sank their whole fleet. You win!' }
-      const target = randomShot(state.player.shots, action.rng)
+      const target = huntTarget(state.player.shots, action.rng)
       const reply = fire(state.player, target)
       const lost = allSunk(reply.board)
       return {

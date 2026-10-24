@@ -26,7 +26,7 @@ Static client-only React + TypeScript app (Vite). No backend, no accounts.
 - Errors: expected "can't do that" returns a value (`shipCells` → `null`, `canPlace` → `boolean`); invalid calls (repeat shot, bad placement) throw. Callers guard with `isShot` / `canPlace` first.
 - The bot must never receive the opponent's `Board` (which includes ship positions) — only the shot results it has observed.
 - `src/game/reducer.ts` — the whole game flow (`placing → playing → over`) as a pure reducer. Randomness enters via optional `rng` on actions; invalid actions (misclicks, wrong phase) return the same state and never throw. `App.tsx` / `Grid.tsx` only render and dispatch.
-- `src/game/bot.ts` — `randomShot` is a stand-in until the Phase 2 hunt/target bot; it receives only the shots map.
+- `src/game/bot.ts` — bots match the `Bot` type and receive only the shots map. `huntTarget` (Medium, used by the reducer) is stateless: it hunts on a checkerboard and targets unresolved `'hit'` cells, since `fire` turns a sunk ship's cells into `'sunk'`. `randomShot` is kept as the Easy tier.
 - Drag-and-drop uses native pointer events + `document.elementFromPoint` (no dnd library), with pointer capture on press so release anywhere ends the drag. `touch-action: none` only on the tray and the player grid while placing (`.grid-drag`), so the page still scrolls in battle. Placement cells also act on keyboard click (`e.detail === 0`).
 
 Code style follows the Vite template: no semicolons, single quotes, `import { type X }` for types (`verbatimModuleSyntax`), tests co-located as `*.test.ts` with explicit `vitest` imports.
