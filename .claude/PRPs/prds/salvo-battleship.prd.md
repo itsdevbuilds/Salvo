@@ -51,9 +51,9 @@ We'll know we're right when friends finish a full game on their phone without fr
 ## Open Questions
 
 - [ ] Should "Salvo" variant (shots per turn = ships remaining) be the default mode, given the product name?
-- [ ] Mobile layout: one board at a time with turn-based switching, or both boards stacked?
+- [x] Mobile layout: one board at a time with turn-based switching, or both boards stacked? — Enemy grid big on top, own fleet as minimap beside status (Phase 4)
 - [ ] Is any analytics needed to measure replay, or is friend feedback enough?
-- [ ] Visual direction: clean flat, neon radar, or other?
+- [x] Visual direction: clean flat, neon radar, or other? — Neon radar, dark-first (Phase 4)
 
 ---
 
@@ -140,7 +140,7 @@ Open link → fleet placement screen (Randomize or drag/tap ships, rotate) → S
 | 1 | Scaffold + engine | Vite/React/TS project, pure TS game rules with tests | complete | - | - | [plan](../plans/completed/scaffold-and-engine.plan.md) · [report](../reports/scaffold-and-engine-report.md) |
 | 2 | Medium bot | Hunt/target bot with parity, tested via simulated games | complete | with 3 | 1 | [plan](../plans/completed/medium-bot.plan.md) · [report](../reports/medium-bot-report.md) |
 | 3 | Core UI | Boards, placement (drag/tap/rotate/randomize), turn flow, win/lose | complete | with 2 | 1 | [plan](../plans/completed/core-ui.plan.md) · [report](../reports/core-ui-report.md) |
-| 4 | Mobile + polish | Phone layout, animations, visual style | pending | - | 2, 3 | - |
+| 4 | Mobile + polish | Phone layout, animations, visual style | complete | - | 2, 3 | [plan](../plans/completed/mobile-polish.plan.md) · [report](../reports/mobile-polish-report.md) |
 | 5 | Deploy + playtest | Static deploy, Lighthouse check, friend playtest | pending | - | 4 | - |
 
 ### Phase Details
@@ -187,6 +187,9 @@ Phases 2 and 3 both depend only on the engine API from Phase 1; bot is pure logi
 | State | useReducer | Zustand/Redux | Single screen, linear phases |
 | Hosting | Static (GH Pages/Netlify/Vercel) | Server | Free, no backend needed |
 | MVP difficulty | Medium (hunt/target) | Random, probability density | Feels real without complexity; others deferred |
+| Phone battle layout (Phase 4) | Enemy grid on top, own fleet minimap + status row | One board at a time; both full-size stacked | Both boards visible at 375x667 with no scroll or switching |
+| Visual direction (Phase 4) | Neon radar, dark-first, CSS-only animations | Clean flat; classic naval | Most distinct from dated competitors; no animation lib or web fonts keeps load fast |
+| Bot pacing (Phase 4) | ~600 ms delay via separate `botFire` action dispatched by App | Instant reply | Makes the bot's shot visible; reducer stays pure and synchronous |
 | Medium bot (Phase 2) | Stateless hunt/target with line-end targeting and parity 2 | Bot memory in GameState; parity spaced by smallest live ship | `fire` marks sunk cells, so targets derive from the shots map; sunk cells aren't grouped per ship. Measured 51 avg shots vs 95 random (300 seeded games) |
 
 ---

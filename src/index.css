@@ -1,35 +1,45 @@
 :root {
-  --bg: #f6f8fb;
-  --fg: #14202e;
-  --muted: #5b6878;
-  --line: #c9d3df;
-  --water: #d6e6f5;
-  --ship: #66778a;
-  --miss: #9fb6cc;
-  --hit: #e0533d;
-  --sunk: #7a1f12;
-  --ok: #1e7a43;
+  /* light: pale chart, teal accents */
+  --bg: #eef5fa;
+  --fg: #0b2233;
+  --muted: #4f6b80;
+  --line: #b9cfdd;
+  --water: #d3e7f2;
+  --accent: #007f99;
+  --glow: transparent;
+  --sweep: rgba(0, 127, 153, 0.18);
+  --ship: #5a7d93;
+  --miss: #3d8fb0;
+  --hit: #e8631a;
+  --sunk: #c21d3a;
+  --flash: #ffd9b8;
+  --ok: #0f8a5f;
   --on-ok: #fff;
   --bad: #d64545;
 
   color-scheme: light dark;
-  font: 16px/1.4 system-ui, 'Segoe UI', Roboto, sans-serif;
+  font: 15px/1.4 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 
+/* dark is the main look: neon radar */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e1620;
-    --fg: #e6edf5;
-    --muted: #93a1b2;
-    --line: #2a3a4c;
-    --water: #16324d;
-    --ship: #8a9bb0;
-    --miss: #3d5a78;
-    --hit: #ff6b52;
-    --sunk: #b8321f;
-    --ok: #3fbf72;
-    --on-ok: #0e1620;
-    --bad: #ff5d5d;
+    --bg: #050b14;
+    --fg: #d8f3ff;
+    --muted: #6f8ba3;
+    --line: #12324a;
+    --water: #071c2e;
+    --accent: #22e3ff;
+    --glow: rgba(34, 227, 255, 0.25);
+    --sweep: rgba(34, 227, 255, 0.22);
+    --ship: #2f5d7a;
+    --miss: #3aa7c4;
+    --hit: #ff7a1a;
+    --sunk: #ff2e4d;
+    --flash: #fff3e0;
+    --ok: #2bff9a;
+    --on-ok: #04140c;
+    --bad: #ff4d6d;
   }
 }
 
@@ -47,12 +57,28 @@ main {
 }
 
 h1 {
-  margin: 0 0 4px;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  text-shadow: 0 0 12px var(--glow);
 }
 
 h2 {
-  font-size: 1rem;
-  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+[role='status'] {
+  margin: 0;
+}
+
+[role='status'] span {
+  display: block;
 }
 
 .hint {
@@ -68,6 +94,7 @@ button {
   border-radius: 8px;
   padding: 8px 14px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:disabled {
@@ -79,10 +106,12 @@ button.primary {
   background: var(--ok);
   border-color: var(--ok);
   color: var(--on-ok);
+  font-weight: 700;
+  box-shadow: 0 0 12px var(--glow);
 }
 
 [aria-pressed='true'] {
-  outline: 2px solid var(--ok);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
@@ -108,7 +137,7 @@ button.primary {
 }
 
 .ship-len {
-  color: var(--ship);
+  color: var(--accent);
   letter-spacing: 2px;
 }
 
@@ -117,7 +146,20 @@ button.primary {
   flex-wrap: wrap;
   gap: 24px;
   justify-content: center;
+  align-items: flex-start;
   margin-top: 12px;
+}
+
+.hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* status above your grid while placing */
+.placing .hud [role='status'] {
+  order: -1;
 }
 
 .grid {
@@ -125,12 +167,36 @@ button.primary {
   gap: 2px;
   width: min(92vw, 400px);
   aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: 2px;
+  background: var(--line);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 0 24px var(--glow);
   user-select: none;
+  /* no double-tap zoom on rapid shots */
+  touch-action: manipulation;
 }
 
 /* only while placing, so the page still scrolls during battle */
 .grid-drag {
   touch-action: none;
+}
+
+.grid-enemy {
+  position: relative;
+  overflow: hidden;
+}
+
+/* radar sweep: decorative, never intercepts taps */
+.grid-enemy::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  z-index: 1;
+  pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0 75%, var(--sweep));
+  animation: sweep 4s linear infinite;
 }
 
 .cell {
@@ -156,14 +222,18 @@ button.primary {
   inset: 38%;
   border-radius: 50%;
   background: var(--miss);
+  animation: ping 500ms ease-out;
 }
 
+/* no transform: scale in cell animations, .grid-enemy clips edge cells */
 .cell.hit {
   background: var(--hit);
+  animation: flare 400ms ease-out;
 }
 
 .cell.sunk {
   background: var(--sunk);
+  animation: sink 700ms ease-out;
 }
 
 .cell.preview {
@@ -174,8 +244,117 @@ button.primary {
   background: var(--bad);
 }
 
-.grid-enemy .cell:not(:disabled):hover,
+/* z-index lifts outlined cells above the radar sweep */
+.cell.last {
+  z-index: 2;
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.cell[aria-disabled='true'] {
+  cursor: default;
+}
+
+.grid-enemy .cell:not(:disabled, [aria-disabled='true']):hover,
 .cell:focus-visible {
+  z-index: 2;
   outline: 2px solid var(--fg);
   outline-offset: -2px;
+}
+
+[data-winner='player'] [role='status'] {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+[data-winner='bot'] [role='status'] {
+  color: var(--hit);
+  font-weight: 700;
+}
+
+@keyframes sweep {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes ping {
+  from {
+    box-shadow: 0 0 0 0 var(--miss);
+  }
+  to {
+    box-shadow: 0 0 0 12px transparent;
+  }
+}
+
+@keyframes flare {
+  from {
+    background: var(--flash);
+    box-shadow: 0 0 16px var(--hit);
+  }
+}
+
+@keyframes sink {
+  0%,
+  40% {
+    filter: brightness(1.8);
+    box-shadow: 0 0 12px var(--sunk);
+  }
+}
+
+@media (max-width: 719px) {
+  main {
+    padding: 8px 12px;
+  }
+
+  /* game screen: drop the title visually, keep it for screen readers */
+  .battle h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .battle .boards {
+    gap: 12px;
+    margin-top: 0;
+    /* leave room for the minimap row so a phone never scrolls in battle; shared so the two rows line up */
+    --board: min(92vw, 400px, calc(100dvh - 230px));
+  }
+
+  .battle .grid-enemy {
+    width: var(--board);
+  }
+
+  .battle .hud {
+    flex-direction: row;
+    gap: 12px;
+    width: var(--board);
+  }
+
+  .battle .grid-player {
+    width: min(38vw, 150px);
+    gap: 1px;
+    padding: 1px;
+  }
+
+  .battle .hud [role='status'] {
+    flex: 1;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+  }
+
+  /* a frozen sweep reads as a stray shadow */
+  .grid-enemy::before {
+    display: none;
+  }
 }

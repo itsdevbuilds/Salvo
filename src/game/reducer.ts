@@ -23,6 +23,8 @@ export type GameState = {
   enemy: Board
   orientation: Orientation
   selected: ShipType | null
+  // whose shot is next while playing; the UI dispatches botFire after a delay
+  turn: 'player' | 'bot'
   winner: 'player' | 'bot' | null
   message: string
 }
@@ -33,7 +35,8 @@ export type Action =
   | { type: 'place'; origin: Cell }
   | { type: 'randomize'; rng?: () => number }
   | { type: 'start'; rng?: () => number }
-  | { type: 'fire'; cell: Cell; rng?: () => number }
+  | { type: 'fire'; cell: Cell }
+  | { type: 'botFire'; rng?: () => number }
   | { type: 'reset' }
 
 export const initialState = (): GameState => ({
@@ -42,6 +45,7 @@ export const initialState = (): GameState => ({
   enemy: emptyBoard(),
   orientation: 'h',
   selected: FLEET[0].type,
+  turn: 'player',
   winner: null,
   message: PLACE_MSG,
 })
@@ -100,26 +104,26 @@ export function gameReducer(state: GameState, action: Action): GameState {
         phase: 'playing',
         enemy: { ships: randomFleet(action.rng), shots: new Map() },
         selected: null,
+        turn: 'player',
         message: 'Fire at the enemy grid.',
       }
     case 'fire': {
-      if (state.phase !== 'playing' || !inRange(action.cell) || isShot(state.enemy, action.cell)) return state
+      if (state.phase !== 'playing' || state.turn !== 'player' || !inRange(action.cell) || isShot(state.enemy, action.cell))
+        return state
       const shot = fire(state.enemy, action.cell)
       if (allSunk(shot.board))
         return { ...state, enemy: shot.board, phase: 'over', winner: 'player', message: 'You sank their whole fleet. You win!' }
+      return { ...state, enemy: shot.board, turn: 'bot', message: report('You', action.cell, shot) }
+    }
+    // the bot replies in its own action so the UI can pause before it; its report goes on a new line under the
+    // player's, so the status region announces only the added line
+    case 'botFire': {
+      if (state.phase !== 'playing' || state.turn !== 'bot') return state
       const target = huntTarget(state.player.shots, action.rng)
       const reply = fire(state.player, target)
-      const lost = allSunk(reply.board)
-      return {
-        ...state,
-        enemy: shot.board,
-        player: reply.board,
-        phase: lost ? 'over' : 'playing',
-        winner: lost ? 'bot' : null,
-        message: lost
-          ? 'The bot sank your whole fleet. You lose.'
-          : `${report('You', action.cell, shot)} ${report('Bot', target, reply)}`,
-      }
+      if (allSunk(reply.board))
+        return { ...state, player: reply.board, phase: 'over', winner: 'bot', message: 'The bot sank your whole fleet. You lose.' }
+      return { ...state, player: reply.board, turn: 'player', message: `${state.message}\n${report('Bot', target, reply)}` }
     }
     case 'reset':
       return initialState()

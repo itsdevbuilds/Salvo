@@ -1,4 +1,4 @@
-import { useReducer, useState, type PointerEvent } from 'react'
+import { useEffect, useReducer, useState, type PointerEvent } from 'react'
 import { Grid } from './Grid.tsx'
 import { colOf, rowOf, toCell, unplaced } from './game/engine'
 import { gameReducer, initialState, placementCells } from './game/reducer'
@@ -17,12 +17,21 @@ function originFor(cell: Cell, offset: number, orientation: Orientation): Cell {
   return row < 0 || col < 0 ? -1 : toCell(row, col)
 }
 
+// long enough to see your shot land before the bot answers
+const BOT_DELAY_MS = 600
+
 export default function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, initialState)
   const [hover, setHover] = useState<Cell | null>(null)
   // from: the cell a placed ship was picked up at, so a plain tap on it doesn't move it; offset: grabbed segment
   const [drag, setDrag] = useState<{ from: Cell | null; offset: number } | null>(null)
   const placing = state.phase === 'placing'
+
+  useEffect(() => {
+    if (state.phase !== 'playing' || state.turn !== 'bot') return
+    const id = setTimeout(() => dispatch({ type: 'botFire' }), BOT_DELAY_MS)
+    return () => clearTimeout(id)
+  }, [state.phase, state.turn])
 
   let preview = null
   if (placing && hover !== null && state.selected) {
@@ -60,6 +69,8 @@ export default function App() {
 
   return (
     <main
+      className={placing ? 'placing' : 'battle'}
+      data-winner={state.winner ?? undefined}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={() => {
@@ -69,7 +80,6 @@ export default function App() {
       onPointerLeave={() => setHover(null)}
     >
       <h1>Salvo</h1>
-      <p role="status">{state.message}</p>
 
       {placing && (
         <>
@@ -115,23 +125,33 @@ export default function App() {
       )}
 
       <div className="boards">
-        <Grid
-          board={state.player}
-          id="player"
-          label="Your fleet"
-          showShips
-          preview={preview}
-          onCellDown={placing ? onCellDown : undefined}
-        />
         {!placing && (
           <Grid
             board={state.enemy}
             id="enemy"
             label="Enemy waters"
             showShips={state.phase === 'over'}
+            // stays enabled on the bot's turn so keyboard focus isn't lost; the reducer ignores early shots
             onFire={state.phase === 'playing' ? (cell) => dispatch({ type: 'fire', cell }) : undefined}
           />
         )}
+        {/* one status element for both phases (CSS moves it), so the live region never remounts */}
+        <div className="hud">
+          <Grid
+            board={state.player}
+            id="player"
+            label="Your fleet"
+            showShips
+            preview={preview}
+            onCellDown={placing ? onCellDown : undefined}
+          />
+          {/* one span per line and not atomic, so the bot's added line is announced without repeating yours */}
+          <p role="status" aria-atomic="false">
+            {state.message.split('\n').map((line, i) => (
+              <span key={i}>{line}</span>
+            ))}
+          </p>
+        </div>
       </div>
 
       {state.phase === 'over' && (
