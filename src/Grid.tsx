@@ -16,6 +16,8 @@ type Props = {
 // showShips must stay false for the enemy board until game over, so ship positions never reach the DOM
 export function Grid({ board, id, label, showShips, preview, onFire, onCellDown }: Props) {
   const shipAt = new Set(board.ships.flatMap((s) => s.cells))
+  // Map keeps insertion order and fire() only appends the new cell, so the last key is the latest shot
+  const last = [...board.shots.keys()].at(-1)
   return (
     <section className="board">
       <h2>{label}</h2>
@@ -27,7 +29,7 @@ export function Grid({ board, id, label, showShips, preview, onFire, onCellDown 
           const shot = board.shots.get(cell)
           const ship = showShips && shipAt.has(cell)
           const inPreview = preview?.cells.includes(cell)
-          const classes = ['cell', ship && 'ship', shot, inPreview && (preview!.valid ? 'preview' : 'invalid')]
+          const classes = ['cell', ship && 'ship', shot, cell === last && 'last', inPreview && (preview!.valid ? 'preview' : 'invalid')]
           return (
             <button
               key={cell}
@@ -36,7 +38,9 @@ export function Grid({ board, id, label, showShips, preview, onFire, onCellDown 
               data-cell={cell}
               className={classes.filter(Boolean).join(' ')}
               aria-label={`${cellName(cell)}${shot ? `, ${shot}` : ship ? ', ship' : ''}`}
-              disabled={onFire ? !!shot : !onCellDown}
+              // a shot cell is only aria-disabled, so the cell you just fired keeps keyboard focus (the reducer ignores repeats)
+              disabled={!onFire && !onCellDown}
+              aria-disabled={onFire && shot ? true : undefined}
               // detail 0 = keyboard/AT click; pointer clicks were already handled on pointerdown
               onClick={onFire ? () => onFire(cell) : onCellDown && ((e) => e.detail === 0 && onCellDown(cell))}
               onPointerDown={onCellDown && ((e) => e.button === 0 && onCellDown(cell, e))}
